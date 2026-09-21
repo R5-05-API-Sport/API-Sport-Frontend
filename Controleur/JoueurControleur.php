@@ -53,7 +53,7 @@ class JoueurControleur {
     }
 
     public function getJoueurById(int $joueurId) : Joueur {
-        $result = getRequest(BACKEND_BASE_URL."JoueurAPI.php?id=".$joueurId, $_COOKIE["token"]);
+        $result = getRequest(BACKEND_BASE_URL."joueurs/".$joueurId, $_COOKIE["token"]);
         $joueurJson = $result["data"];
         return Joueur::JsonDeserialize($joueurJson);
     }
@@ -73,8 +73,7 @@ class JoueurControleur {
     }
 
     public function listerTousLesJoueurs(): array {
-    $token = $_COOKIE["token"] ?? null;
-    $requestResult = getRequest(BACKEND_BASE_URL . "joueurs", $token);
+    $requestResult = getRequest(BACKEND_BASE_URL . "joueurs", $_COOKIE["token"]);
 
     $joueurs = [];
 
@@ -108,7 +107,7 @@ class JoueurControleur {
             "statut" => $statut,
         );
 
-        $result = putRequest(BACKEND_BASE_URL."JoueurAPI.php?id=".$joueurId, $data, $_COOKIE["token"]);
+        $result = putRequest(BACKEND_BASE_URL."joueurs/".$joueurId, $data, $_COOKIE["token"]);
 
         return $result["status_code"] == 200;
     }
@@ -137,7 +136,7 @@ class JoueurControleur {
     }
 
     public function supprimerJoueur(int $joueurId) : bool {
-        $result = deleteRequest(BACKEND_BASE_URL."JoueurAPI.php?id=".$joueurId, $_COOKIE["token"]);
+        $result = deleteRequest(BACKEND_BASE_URL."joueurs/".$joueurId, $_COOKIE["token"]);
         return $result["status_code"] == 200;
-}
+    }
 }
