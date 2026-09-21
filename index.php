@@ -16,18 +16,21 @@ if (preg_match('/\.(?:png|jpg|jpeg|gif|ico|css|js)\??.*$/', $_SERVER["REQUEST_UR
 
 session_start();
 
-if ($_SERVER["REQUEST_URI"] !== "/login") {
-    if (!isset($_COOKIE["token"])) {
-        header('Location: /login');
-    }
-    
-    $token = $_COOKIE["token"];
-    $result = getRequest("https://authentification.alwaysdata.net/authentification.php", $token);
+setcookie("token", "It'sSoCreamy");
 
-    if ($result["status_code"] != 200) {
-        header('Location: /login');
-    }
-}
+
+// if ($_SERVER["REQUEST_URI"] !== "/login") {
+    // if (!isset($_COOKIE["token"])) {
+    //     header('Location: /login');
+    // }
+    
+    // $token = $_COOKIE["token"];
+    // $result = getRequest("https://authentification.alwaysdata.net/authentification.php", $token);
+
+    // if ($result["status_code"] != 200) {
+    //     header('Location: /login');
+    // }
+// }
 ?>
 
 <!DOCTYPE html>

@@ -1,79 +1,36 @@
 <?php
 
-function postRequest($url, $post_data, $token) {
+function request(string $method, string $url, ?array $data = null, ?string $token = null): array {
     $ch = curl_init();
-    $body = json_encode($post_data);
+    $headers = ['Accept: application/json'];
     if ($token) $headers[] = 'Authorization: Bearer '.$token;
-    curl_setopt_array($ch, [
-      CURLOPT_URL => $url,
-      CURLOPT_POST => true,
-      CURLOPT_RETURNTRANSFER => true,
-      CURLOPT_HTTPHEADER => $headers,
-      CURLOPT_POSTFIELDS => $body,
-    ]);
+
+    $options = [
+        CURLOPT_URL => $url,
+        CURLOPT_CUSTOMREQUEST => $method,
+        CURLOPT_RETURNTRANSFER => true,
+    ];
+
+    if ($data !== null) {
+        $headers[] = 'Content-Type: application/json';
+        $options[CURLOPT_POSTFIELDS] = json_encode($data);
+    }
+    $options[CURLOPT_HTTPHEADER] = $headers;
+
+    curl_setopt_array($ch, $options);
     $response = curl_exec($ch);
-    if ($response === false) throw new Exception(curl_error($ch));
-    return json_decode($response, true);
+    if ($response === false) {
+        throw new Exception(curl_error($ch));
+    }
+
+    return [
+        'status_code' => curl_getinfo($ch, CURLINFO_HTTP_CODE),
+        'data' => json_decode($response, true),
+    ];
 }
 
-function getRequest($url, $token=null) {
-    $ch = curl_init();
-    if ($token) $headers[] = 'Authorization: Bearer '.$token;
-    curl_setopt_array($ch, [
-      CURLOPT_URL => $url,
-      CURLOPT_RETURNTRANSFER => true,
-      CURLOPT_HTTPHEADER => $headers,
-    ]);
-    $response = curl_exec($ch);
-    if ($response === false) throw new Exception(curl_error($ch));
-    return json_decode($response, true);
-}
-
-function deleteRequest($url, $token) {
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
-    if ($token) $headers[] = 'Authorization: Bearer '.$token;
-    curl_setopt_array($ch, [
-      CURLOPT_URL => $url,
-      CURLOPT_RETURNTRANSFER => true,
-      CURLOPT_HTTPHEADER => $headers,
-    ]);
-    $response = curl_exec($ch);
-    if ($response === false) throw new Exception(curl_error($ch));
-    return json_decode($response, true);
-}
-
-function putRequest($url, $post_data, $token=null) {
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
-    $body = json_encode($post_data);
-    if ($token) $headers[] = 'Authorization: Bearer '.$token;
-    curl_setopt_array($ch, [
-      CURLOPT_URL => $url,
-      CURLOPT_RETURNTRANSFER => true,
-      CURLOPT_HTTPHEADER => $headers,
-      CURLOPT_POSTFIELDS => $body,
-    ]);
-    $response = curl_exec($ch);
-    echo "error : ".curl_error($ch);
-    if ($response === false) throw new Exception(curl_error($ch));
-    return json_decode($response, true);
-}
-
-function patchRequest($url, $post_data, $token=null) {
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PATCH");
-    $body = json_encode($post_data);
-    if ($token) $headers[] = 'Authorization: Bearer '.$token;
-    curl_setopt_array($ch, [
-      CURLOPT_URL => $url,
-      CURLOPT_RETURNTRANSFER => true,
-      CURLOPT_HTTPHEADER => $headers,
-      CURLOPT_POSTFIELDS => $body,
-    ]);
-    $response = curl_exec($ch);
-    echo "error : ".curl_error($ch);
-    if ($response === false) throw new Exception(curl_error($ch));
-    return json_decode($response, true);
-}
-?>
+function getRequest($url, $token = null)          { return request('GET', $url, null, $token); }
+function postRequest($url, $data, $token = null)  { return request('POST', $url, $data, $token); }
+function putRequest($url, $data, $token = null)   { return request('PUT', $url, $data, $token); }
+function patchRequest($url, $data, $token = null) { return request('PATCH', $url, $data, $token); }
+function deleteRequest($url, $token = null)       { return request('DELETE', $url, null, $token); }

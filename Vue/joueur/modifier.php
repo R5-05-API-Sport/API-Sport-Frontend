@@ -15,9 +15,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'
     && isset($_GET['id'])
     && isset($_POST['nom'])
     && isset($_POST['prenom'])
-    && isset($_POST['dateDeNaissance'])
-    && isset($_POST['tailleEnCm'])
-    && isset($_POST['poidsEnKg'])
+    && isset($_POST['dateNaissance'])
+    && isset($_POST['taille'])
+    && isset($_POST['poids'])
     && isset($_POST['statut'])
 ) {
 
@@ -26,10 +26,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'
             $_GET['id'],
             $_POST['nom'],
             $_POST['prenom'],
-            $_POST['numeroDeLicence'],
-            new DateTime($_POST['dateDeNaissance']),
-            $_POST['tailleEnCm'],
-            $_POST['poidsEnKg'],
+            $_POST['numeroLicence'],
+            new DateTime($_POST['dateNaissance']),
+            $_POST['taille'],
+            $_POST['poids'],
             $_POST['statut']
         )
     ) {
@@ -46,10 +46,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'
         $formulaire = new Formulaire("/joueur/modifier?id=".$joueur->getJoueurId());
         $formulaire->setText("Nom", "nom", "", $joueur->getNom());
         $formulaire->setText("Prenom", "prenom", "", $joueur->getPrenom());
-        $formulaire->setText("Numéro de license", "numeroDeLicence", "00042", $joueur->getNumeroDeLicence());
-        $formulaire->setDate("Date de naissance", "dateDeNaissance", $joueur->getDateDeNaissance()->format('Y-m-d'));
-        $formulaire->setText("Taille (en cm)", "tailleEnCm", "", $joueur->getTailleEnCm());
-        $formulaire->setText("Poids (en Kg)", "poidsEnKg", "", $joueur->getPoidsEnKg());
+        $formulaire->setText("Numéro de license", "numeroLicence", "00042", $joueur->getnumeroLicence());
+        $formulaire->setDate("Date de naissance", "dateNaissance", $joueur->getdateNaissance()->format('Y-m-d'));
+        $formulaire->setText("Taille (en cm)", "taille", "", $joueur->gettaille());
+        $formulaire->setText("Poids (en Kg)", "poids", "", $joueur->getpoids());
         $formulaire->setSelect("Statut", array_map(function($statut) { return $statut->name; }, JoueurStatut::cases()), "statut");
         $formulaire->addButton("Submit", "update", "modifier","Modifier");
         echo $formulaire;

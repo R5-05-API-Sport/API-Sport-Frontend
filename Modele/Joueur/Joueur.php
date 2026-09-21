@@ -9,29 +9,29 @@ class Joueur implements JsonSerializable {
     private int $joueurId;
     private string $nom;
     private string $prenom;
-    private string $numeroDeLicence;
-    private DateTime $dateDeNaissance;
-    private int $tailleEnCm;
-    private int $poidsEnKg;
+    private string $numeroLicence;
+    private DateTime $dateNaissance;
+    private int $taille;
+    private int $poids;
     private ?JoueurStatut $statut;
 
     public function __construct(
         int $joueurId,
         string $nom,
         string $prenom,
-        string $numeroDeLicence,
-        DateTime $dateDeNaissance,
-        int $tailleEnCm,
-        int $poidsEnKg,
+        string $numeroLicence,
+        DateTime $dateNaissance,
+        int $taille,
+        int $poids,
         ?JoueurStatut $statut
     ) {
         $this->joueurId = $joueurId;
         $this->nom = $nom;
         $this->prenom = $prenom;
-        $this->numeroDeLicence = $numeroDeLicence;
-        $this->dateDeNaissance = $dateDeNaissance;
-        $this->tailleEnCm = $tailleEnCm;
-        $this->poidsEnKg = $poidsEnKg;
+        $this->numeroLicence = $numeroLicence;
+        $this->dateNaissance = $dateNaissance;
+        $this->taille = $taille;
+        $this->poids = $poids;
         $this->statut = $statut;
     }
 
@@ -40,10 +40,10 @@ class Joueur implements JsonSerializable {
             'joueurId' => $this->joueurId,
             'nom' => $this->nom,
             'prenom' => $this->prenom,
-            'numeroDeLicence' => $this->numeroDeLicence,
-            'dateDeNaissance' => $this->dateDeNaissance,
-            'tailleEnCm' => $this->tailleEnCm,
-            'poidsEnKg' => $this->poidsEnKg,
+            'numeroLicence' => $this->numeroLicence,
+            'dateNaissance' => $this->dateNaissance,
+            'taille' => $this->taille,
+            'poids' => $this->poids,
             'statut' => $this->statut,
         ];
     }
@@ -53,13 +53,13 @@ class Joueur implements JsonSerializable {
         $joueurId = $joueurJson["joueurId"];
         $nom = $joueurJson["nom"];
         $prenom = $joueurJson["prenom"];
-        $numeroDeLicence = $joueurJson["numeroDeLicence"];
-        $dateDeNaissance = new DateTime($joueurJson["dateDeNaissance"]["date"]);
-        $tailleEnCm = $joueurJson["tailleEnCm"];
-        $poidsEnKg = $joueurJson["poidsEnKg"];
+        $numeroLicence = $joueurJson["numeroLicence"];
+        $dateNaissance = new DateTime($joueurJson["dateNaissance"]);
+        $taille = $joueurJson["taille"];
+        $poids = $joueurJson["poids"];
         $statut = JoueurStatut::fromName($joueurJson["statut"]);
 
-        return new Joueur($joueurId, $nom, $prenom, $numeroDeLicence, $dateDeNaissance, $tailleEnCm, $poidsEnKg, $statut);
+        return new Joueur($joueurId, $nom, $prenom, $numeroLicence, $dateNaissance, $taille, $poids, $statut);
     }
 
     public function nomOuPrenomContient(string $recherche) : bool {
@@ -69,7 +69,7 @@ class Joueur implements JsonSerializable {
 
     public function toString() : string {
         $selectableString = "";
-        $selectableString .= $this->getNumeroDeLicence() . ' : ' . $this->nom . ' ' . $this->prenom;
+        $selectableString .= $this->getnumeroLicence() . ' : ' . $this->nom . ' ' . $this->prenom;
 
         if ($this->statut !== JoueurStatut::ACTIF) {
             $selectableString .= ' (' . $this->statut->name . ')';
@@ -95,20 +95,20 @@ class Joueur implements JsonSerializable {
         return $this->prenom;
     }
 
-    public function getNumeroDeLicence() {
-        return $this->numeroDeLicence;
+    public function getnumeroLicence() {
+        return $this->numeroLicence;
     }
 
-    public function getDateDeNaissance() : DateTime {
-        return $this->dateDeNaissance;
+    public function getdateNaissance() : DateTime {
+        return $this->dateNaissance;
     }
 
-    public function getTailleEnCm() {
-        return $this->tailleEnCm;
+    public function gettaille() {
+        return $this->taille;
     }
 
-    public function getPoidsEnKg() {
-        return $this->poidsEnKg;
+    public function getpoids() {
+        return $this->poids;
     }
 
     public function getStatut() {
@@ -125,24 +125,24 @@ class Joueur implements JsonSerializable {
         $this->prenom = $prenom;
     }
 
-    public function setNumeroDeLicence(string $numeroDeLicence): void
+    public function setnumeroLicence(string $numeroLicence): void
     {
-        $this->numeroDeLicence = $numeroDeLicence;
+        $this->numeroLicence = $numeroLicence;
     }
 
-    public function setDateDeNaissance(DateTime $dateDeNaissance): void
+    public function setdateNaissance(DateTime $dateNaissance): void
     {
-        $this->dateDeNaissance = $dateDeNaissance;
+        $this->dateNaissance = $dateNaissance;
     }
 
-    public function setTailleEnCm(int $tailleEnCm): void
+    public function settaille(int $taille): void
     {
-        $this->tailleEnCm = $tailleEnCm;
+        $this->taille = $taille;
     }
 
-    public function setPoidsEnKg(int $poidsEnKg): void
+    public function setpoids(int $poids): void
     {
-        $this->poidsEnKg = $poidsEnKg;
+        $this->poids = $poids;
     }
 
     public function setStatut(?JoueurStatut $statut): void

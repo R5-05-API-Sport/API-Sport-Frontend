@@ -29,25 +29,25 @@ class JoueurControleur {
     public function ajouterJoueur(
         string $nom,
         string $prenom,
-        string $numeroDeLicence,
-        DateTime $dateDeNaissance,
-        int $tailleEnCm,
-        int $poidsEnKg,
+        string $numeroLicence,
+        DateTime $dateNaissance,
+        int $taille,
+        int $poids,
         string $statut
     ) : bool {
         
         $data = array(
             "nom" => $nom,
             "prenom" => $prenom,
-            "numeroDeLicence" => $numeroDeLicence,
-            "dateDeNaissance" => $dateDeNaissance->format('Y-m-d'),
-            "tailleEnCm" => $tailleEnCm,
-            "poidsEnKg" => $poidsEnKg,
+            "numeroLicence" => $numeroLicence,
+            "dateNaissance" => $dateNaissance->format('Y-m-d'),
+            "taille" => $taille,
+            "poids" => $poids,
             "statut" => $statut,
         );
 
         $token = $_COOKIE["token"];
-        $result = postRequest(BACKEND_BASE_URL."JoueurAPI.php", $data, $token);
+        $result = postRequest(BACKEND_BASE_URL."joueurs", $data, $token);
 
         return $result["status_code"] == 201;
     }
@@ -72,39 +72,39 @@ class JoueurControleur {
         return $joueursSelectionnables;
     }
 
-    public function listerTousLesJoueurs() : array {
-        $requestResult = getRequest(BACKEND_BASE_URL."JoueurAPI.php", $_COOKIE["token"]);
+    public function listerTousLesJoueurs(): array {
+    $token = $_COOKIE["token"] ?? null;
+    $requestResult = getRequest(BACKEND_BASE_URL . "joueurs", $token);
 
-        $joueurs = array();
+    $joueurs = [];
 
-        if ($requestResult["status_code"] == 200) {
-            $data = $requestResult["data"];
-            foreach ($data as $joueurJson) {
-                array_push($joueurs, Joueur::JsonDeserialize($joueurJson));
-            }
+    if ($requestResult["status_code"] == 200 && is_array($requestResult["data"])) {
+        foreach ($requestResult["data"] as $joueurJson) {
+            $joueurs[] = Joueur::JsonDeserialize($joueurJson);
         }
-
-        return $joueurs;
     }
+
+    return $joueurs;
+}
 
     public function modifierJoueur(
         int $joueurId,
         string $nom,
         string $prenom,
-        string $numeroDeLicence,
-        DateTime $dateDeNaissance,
-        int $tailleEnCm,
-        int $poidsEnKg,
+        string $numeroLicence,
+        DateTime $dateNaissance,
+        int $taille,
+        int $poids,
         string $statut
     ) : bool {
 
         $data = array(
             "nom" => $nom,
             "prenom" => $prenom,
-            "numeroDeLicence" => $numeroDeLicence,
-            "dateDeNaissance" => $dateDeNaissance->format('Y-m-d'),
-            "tailleEnCm" => $tailleEnCm,
-            "poidsEnKg" => $poidsEnKg,
+            "numeroLicence" => $numeroLicence,
+            "dateNaissance" => $dateNaissance->format('Y-m-d'),
+            "taille" => $taille,
+            "poids" => $poids,
             "statut" => $statut,
         );
 

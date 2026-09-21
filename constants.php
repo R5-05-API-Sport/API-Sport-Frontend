@@ -1,5 +1,5 @@
 <?php
 
-define("BACKEND_BASE_URL", "https://back-end.alwaysdata.net/API/");
+define("BACKEND_BASE_URL", "http://localhost:8080/");
 
 ?>

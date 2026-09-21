@@ -51,12 +51,12 @@ $joueurs = $joueurControleur->listerTousLesJoueurs();
 
         <?php foreach ($joueurs as $joueur) { ?>
             <tr>
-                <td><?php echo $joueur->getNumeroDeLicence() ?></td>
+                <td><?php echo $joueur->getnumeroLicence() ?></td>
                 <td><?php echo $joueur->getNom() ?></td>
                 <td><?php echo $joueur->getPrenom() ?></td>
-                <td><?php echo $joueur->getDateDeNaissance()->format('d/m/Y') ?></td>
-                <td><?php echo $joueur->getTailleEnCm() ?> cm</td>
-                <td><?php echo $joueur->getPoidsEnKg() ?> kg</td>
+                <td><?php echo $joueur->getdateNaissance()->format('d/m/Y') ?></td>
+                <td><?php echo $joueur->gettaille() ?> cm</td>
+                <td><?php echo $joueur->getpoids() ?> kg</td>
                 <td><?php echo $joueur->getStatut()->name ?></td>
                 <td class="actions">
                     <form action="joueur/modifier" method="get"><button class="update" type="submit" name="id" value="<?php echo $joueur->getJoueurId() ?>">Modifier</button></form>
