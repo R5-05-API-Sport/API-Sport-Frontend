@@ -6,14 +6,14 @@ use r401_frontend\Modele\Rencontre\RencontreLieu;
 
 class Rencontre {
     private int $rencontreId;
-    private DateTime $dateEtHeure;
+    private DateTime $dateHeure;
     private string $equipeAdverse;
     private string $adresse;
     private ?RencontreLieu $lieu;
     private ?RencontreResultat $resultat;
 
     public function __construct(
-        DateTime $dateEtheure,
+        DateTime $dateHeure,
         string $equipeAdverse,
         string $adresse,
         ?RencontreLieu $lieu,
@@ -21,7 +21,7 @@ class Rencontre {
         int $rencontreId = 0
     ) {
         $this->rencontreId = $rencontreId;
-        $this->dateEtHeure = $dateEtheure;
+        $this->dateHeure = $dateHeure;
         $this->equipeAdverse = $equipeAdverse;
         $this->adresse = $adresse;
         $this->lieu = $lieu;
@@ -29,30 +29,39 @@ class Rencontre {
     }
 
     public static function JsonDeserialize(array $rencontreJson): Rencontre {
-        $rencontreId = $rencontreJson["rencontreId"];
-        $dateEtHeure = new DateTime($rencontreJson["dateEtHeure"]["date"]);
-        $equipeAdverse = $rencontreJson["equipeAdverse"];
-        $adresse = $rencontreJson["adresse"];
-        $lieu = RencontreLieu::fromName($rencontreJson["lieu"]);
-        $resultat = null;
-        if ($rencontreJson["resultat"]) {
-            $resultat = RencontreResultat::fromName($rencontreJson["resultat"]);
-        }
-        return new Rencontre($dateEtHeure, $equipeAdverse, $adresse, $lieu, $resultat, $rencontreId);
+    $rencontreId = $rencontreJson["rencontreId"] ?? 0;
+
+    $dateHeure = !empty($rencontreJson["dateHeure"])
+        ? new DateTime($rencontreJson["dateHeure"])
+        : new DateTime(); // or throw, depending on what makes sense
+
+    $equipeAdverse = $rencontreJson["equipeAdverse"] ?? '';
+    $adresse = $rencontreJson["adresse"] ?? '';
+
+    $lieu = isset($rencontreJson["lieu"])
+        ? RencontreLieu::fromName($rencontreJson["lieu"])
+        : null;
+
+    $resultat = null;
+    if (!empty($rencontreJson["resultat"])) {
+        $resultat = RencontreResultat::fromName($rencontreJson["resultat"]);
     }
+
+    return new Rencontre($dateHeure, $equipeAdverse, $adresse, $lieu, $resultat, $rencontreId);
+}
 
     public function getRencontreId(): int
     {
         return $this->rencontreId;
     }
 
-    public function getDateEtHeure(): DateTime
+    public function getdateHeure(): DateTime
     {
-        return $this->dateEtHeure;
+        return $this->dateHeure;
     }
 
-    public function setDateEtHeure(DateTime $dateEtHeure): void {
-        $this->dateEtHeure = $dateEtHeure;
+    public function setdateHeure(DateTime $dateHeure): void {
+        $this->dateHeure = $dateHeure;
     }
 
     public function getEquipeAdverse(): string
@@ -112,6 +121,6 @@ class Rencontre {
     }
 
     public function estPassee(): bool {
-        return $this->dateEtHeure < new DateTime();
+        return $this->dateHeure < new DateTime();
     }
 }

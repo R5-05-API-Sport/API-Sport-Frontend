@@ -64,7 +64,7 @@ $rencontres = $controleur->listerToutesLesRencontres();
         <form action="rencontre" method="post">
             <tr>
                 <input type="hidden" name="rencontreId" value="<?php echo $rencontre->getRencontreId(); ?>" />
-                <td><?php echo $rencontre->getDateEtHeure()->format('d/m/Y H:i') ?></td>
+                <td><?php echo $rencontre->getDateHeure()->format('d/m/Y H:i') ?></td>
                 <td><?php echo $rencontre->getEquipeAdverse() ?></td>
                 <td><?php echo $rencontre->getAdresse() ?></td>
                 <td><?php echo $rencontre->getLieu()->name ?></td>

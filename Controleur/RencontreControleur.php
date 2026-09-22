@@ -41,7 +41,7 @@ class RencontreControleur {
                 "lieu" => $lieu->name,
             );
 
-            $requestResult = postRequest(BACKEND_BASE_URL."RencontreAPI.php", $data, $_COOKIE["token"]);
+            $requestResult = postRequest(BACKEND_BASE_URL."rencontres", $data, $_COOKIE["token"]);
 
             return $requestResult["status_code"] == 201;
         }
@@ -67,7 +67,7 @@ class RencontreControleur {
     }
 
     public function listerToutesLesRencontres() : array {
-        $requestResult = getRequest(BACKEND_BASE_URL."RencontreAPI.php", $_COOKIE["token"]);
+        $requestResult = getRequest(BACKEND_BASE_URL."rencontres", $_COOKIE["token"]);
 
         $rencontres = array();
 
@@ -98,7 +98,7 @@ class RencontreControleur {
                 "adresse" => $adresse,
                 "lieu" => $lieu->name,
             );
-            $requestResult = putRequest(BACKEND_BASE_URL."RencontreAPI.php?id=".$rencontreId, $data, $_COOKIE["token"]);
+            $requestResult = putRequest(BACKEND_BASE_URL."rencontres/".$rencontreId, $data, $_COOKIE["token"]);
             return $requestResult["status_code"] == 200;
         }
     }
@@ -109,7 +109,7 @@ class RencontreControleur {
         if($rencontreASupprimer->getResultat() != null) {
             return false;
         } else {
-            $result = deleteRequest(BACKEND_BASE_URL."RencontreAPI.php?id=".$rencontreId, $_COOKIE["token"]);
+            $result = deleteRequest(BACKEND_BASE_URL."rencontres/".$rencontreId, $_COOKIE["token"]);
             return $result["status_code"] == 200;
         }
     }
