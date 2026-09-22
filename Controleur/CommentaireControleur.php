@@ -29,16 +29,17 @@ class CommentaireControleur {
     ) : bool {
 
         $data = array(
-            "contenu" => $contenu
+            "contenu" => $contenu,
+            "joueurId" => $joueurId
         );
 
-        $result = postRequest(BACKEND_BASE_URL."CommentaireAPI.php?id=".$joueurId, $data, $_COOKIE["token"]);
+        $result = postRequest(BACKEND_BASE_URL."commentaires", $data, $_COOKIE["token"]);
 
         return $result["status_code"] == 200;
     }
 
     public function listerLesCommentairesDuJoueur(Joueur $joueur) : array {
-        $result = getRequest(BACKEND_BASE_URL."CommentaireAPI.php?id=".$joueur->getJoueurId(), $_COOKIE["token"]);
+        $result = getRequest(BACKEND_BASE_URL."commentaires/joueur/".$joueur->getJoueurId(), $_COOKIE["token"]);
         $data = $result["data"];
 
         $commentaires = array();
@@ -46,7 +47,7 @@ class CommentaireControleur {
         foreach ($data as $commentaireJson) {
             $commentaireId = $commentaireJson["commentaireId"];
             $contenu = $commentaireJson["contenu"];
-            $date = new DateTime($commentaireJson["date"]["date"]);
+            $date = new DateTime($commentaireJson["date"]);
             $newCommentaire = new Commentaire($commentaireId, $contenu, $date);
             array_push($commentaires, $newCommentaire);
         }
@@ -55,7 +56,7 @@ class CommentaireControleur {
     }
 
     public function supprimerCommentaire(string $commentaireId) : bool {
-        $result = deleteRequest(BACKEND_BASE_URL."CommentaireAPI.php?id=".$commentaireId, $_COOKIE["token"]);
+        $result = deleteRequest(BACKEND_BASE_URL."commentaires/".$commentaireId, $_COOKIE["token"]);
         return $result["status_code"] == 200;
     }
 }
