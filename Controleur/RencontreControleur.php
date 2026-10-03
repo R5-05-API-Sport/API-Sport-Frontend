@@ -54,13 +54,13 @@ class RencontreControleur {
 
         $data = array("resultat" => $resultat);
 
-        $requestResult = patchRequest(BACKEND_BASE_URL."RencontreAPI.php?id=$rencontreId", $data, $_COOKIE["token"]);
+        $requestResult = patchRequest(BACKEND_BASE_URL."rencontres/$rencontreId", $data, $_COOKIE["token"]);
 
         return $requestResult["status_code"] == 200;
     }
 
     public function getRencontreById(int $rencontreId) : Rencontre {
-        $requestResult = getRequest(BACKEND_BASE_URL."RencontreAPI.php?id=$rencontreId", $_COOKIE["token"]);
+        $requestResult = getRequest(BACKEND_BASE_URL."rencontres/$rencontreId", $_COOKIE["token"]);
 
         $data = $requestResult["data"];
         return Rencontre::JsonDeserialize($data);

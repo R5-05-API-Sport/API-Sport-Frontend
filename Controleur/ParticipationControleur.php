@@ -43,7 +43,7 @@ class ParticipationControleur {
     }
 
     public function listerToutesLesParticipations() : array {
-        $requestResult = getRequest(BACKEND_BASE_URL."ParticipationAPI.php", $_COOKIE["token"]);
+        $requestResult = getRequest(BACKEND_BASE_URL."participations", $_COOKIE["token"]);
         $data = $requestResult["data"];
         $participations = [];
         foreach ($data as $participation) {
@@ -53,10 +53,10 @@ class ParticipationControleur {
     }
 
     public function getFeuilleDeMatch(int $rencontreId) : FeuilleDeMatch {
-        $requestResult = getRequest(BACKEND_BASE_URL."ParticipationAPI.php?id=".$rencontreId, $_COOKIE["token"]);
+        $requestResult = getRequest(BACKEND_BASE_URL."participations/rencontre/".$rencontreId, $_COOKIE["token"]);
         $data = $requestResult["data"];
         $participants = array();
-        foreach ($data["participants"] as $participationJson) {
+        foreach ($data as $participationJson) {
             array_push($participants, Participation::jsonDeserialize($participationJson));
         }
         return new FeuilleDeMatch($participants);
@@ -110,12 +110,12 @@ class ParticipationControleur {
         string $performance
     ) : bool {
         $data = array("performance" => $performance);
-        $requestResult = patchRequest(BACKEND_BASE_URL."PerformanceAPI.php?id=$participationId", $data, $_COOKIE["token"]);
+        $requestResult = patchRequest(BACKEND_BASE_URL."performances/$participationId", $data, $_COOKIE["token"]);
         return $requestResult["status_code"] == 200;
     }
 
     public function supprimerLaPerformance(int $participationId) : bool {
-        $requestResult = deleteRequest(BACKEND_BASE_URL."PerformanceAPI.php?id=$participationId", $_COOKIE["token"]);
+        $requestResult = deleteRequest(BACKEND_BASE_URL."performances/$participationId", $_COOKIE["token"]);
         return $requestResult["status_code"] == 200;
     }
 }
