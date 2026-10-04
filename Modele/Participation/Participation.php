@@ -32,7 +32,7 @@ class Participation {
 
     public static function jsonDeserialize(array $participationJson): Participation {
         $participationId = $participationJson["participationId"];
-        $joueur = Joueur::JsonDeserialize($participationJson["participant"]);
+        $joueur = Joueur::JsonDeserialize($participationJson["joueur"]);
         $rencontre = Rencontre::JsonDeserialize($participationJson["rencontre"]);
         $titulaireOuRemplacant = TitulaireOuRemplacant::fromName($participationJson["titulaireOuRemplacant"]);
         $performance = null;

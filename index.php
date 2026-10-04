@@ -16,9 +16,6 @@ if (preg_match('/\.(?:png|jpg|jpeg|gif|ico|css|js)\??.*$/', $_SERVER["REQUEST_UR
 
 session_start();
 
-setcookie("token", "It'sSoCreamy");
-
-
 // if ($_SERVER["REQUEST_URI"] !== "/login") {
     // if (!isset($_COOKIE["token"])) {
     //     header('Location: /login');
