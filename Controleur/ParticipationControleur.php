@@ -78,7 +78,7 @@ class ParticipationControleur {
             var_dump($data);
 
             $token = $_COOKIE["token"];
-            $requestResult = postRequest(BACKEND_BASE_URL."ParticipationAPI.php", $data, $token);
+            $requestResult = postRequest(BACKEND_BASE_URL."participation", $data, $token);
 
             var_dump($requestResult);
 
@@ -96,12 +96,12 @@ class ParticipationControleur {
             "titulaireOuRemplacant" => $titulaireOuRemplacant->name,
             "joueurId" => $joueurId,
         );
-        $requestResult = putRequest(BACKEND_BASE_URL."ParticipationAPI.php?id=$participationId", $data, $_COOKIE["token"]);
+        $requestResult = putRequest(BACKEND_BASE_URL."participation/$participationId", $data, $_COOKIE["token"]);
         return $requestResult["status_code"] == 200;
     }
 
     public function supprimerLaParticipation(int $participationId) : bool {
-        $requestResult = deleteRequest(BACKEND_BASE_URL."ParticipationAPI.php?id=$participationId", $_COOKIE["token"]);
+        $requestResult = deleteRequest(BACKEND_BASE_URL."participation/$participationId", $_COOKIE["token"]);
         return $requestResult["status_code"] == 200;
     }
 
