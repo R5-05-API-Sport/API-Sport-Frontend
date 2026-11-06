@@ -5,7 +5,6 @@ namespace r401_frontend\Controleur;
 require_once $_SERVER['DOCUMENT_ROOT'] . '/functions.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/constants.php';
 
-use r401_frontend\Modele\Joueur\Joueur;
 use r401_frontend\Modele\Participation\FeuilleDeMatch;
 use r401_frontend\Modele\Participation\Participation;
 use r401_frontend\Modele\Participation\Performance;
@@ -41,31 +40,61 @@ class ParticipationControleur
         return self::$instance;
     }
 
-    public function lejoueurEstDejaSurLaFeuilleDeMatch(int $rencontreId, int $joueurId): bool
+    private function token(): ?string
     {
-        $requestResult = getRequest(BACKEND_BASE_URL . "ParticipationAPI.php?id=$rencontreId&idJoueur=$joueurId", $_COOKIE["token"]);
-        return $requestResult["data"] == true;
+        return $_COOKIE["token"] ?? null;
     }
 
-    public function listerToutesLesParticipations(): array
+    // Désérialise une liste JSON de participations. Une participation sans
+    // rencontre (autorisé par l'API) est ignorée : le modèle exige une rencontre.
+    private function deserialiser(mixed $data): array
     {
-        $requestResult = getRequest(BACKEND_BASE_URL . "participations", $_COOKIE["token"]);
-        $data = $requestResult["data"];
         $participations = [];
-        foreach ($data as $participation) {
-            $participations[] = Participation::jsonDeserialize($participation);
+        if (!is_array($data)) {
+            return $participations;
+        }
+        foreach ($data as $participationJson) {
+            if (empty($participationJson["rencontre"]) || empty($participationJson["joueur"])) {
+                continue;
+            }
+            $participations[] = Participation::jsonDeserialize($participationJson);
         }
         return $participations;
     }
 
+    // Identifiants des joueurs déjà présents sur la feuille de match (1 seule requête)
+    public function getIdsDesJoueursSurLaFeuilleDeMatch(int $rencontreId): array
+    {
+        $requestResult = getRequest(BACKEND_BASE_URL . "participations/rencontre/" . $rencontreId, $this->token());
+        $ids = [];
+        if ($requestResult["status_code"] == 200 && is_array($requestResult["data"])) {
+            foreach ($requestResult["data"] as $participationJson) {
+                if (isset($participationJson["joueur"]["joueurId"])) {
+                    $ids[] = $participationJson["joueur"]["joueurId"];
+                }
+            }
+        }
+        return $ids;
+    }
+
+    public function lejoueurEstDejaSurLaFeuilleDeMatch(int $rencontreId, int $joueurId): bool
+    {
+        return in_array($joueurId, $this->getIdsDesJoueursSurLaFeuilleDeMatch($rencontreId));
+    }
+
+    public function listerToutesLesParticipations(): array
+    {
+        $requestResult = getRequest(BACKEND_BASE_URL . "participations", $this->token());
+        if ($requestResult["status_code"] != 200) {
+            return [];
+        }
+        return $this->deserialiser($requestResult["data"]);
+    }
+
     public function getFeuilleDeMatch(int $rencontreId): FeuilleDeMatch
     {
-        $requestResult = getRequest(BACKEND_BASE_URL . "participations/rencontre/" . $rencontreId, $_COOKIE["token"]);
-        $data = $requestResult["data"];
-        $participants = array();
-        foreach ($data as $participationJson) {
-            array_push($participants, Participation::jsonDeserialize($participationJson));
-        }
+        $requestResult = getRequest(BACKEND_BASE_URL . "participations/rencontre/" . $rencontreId, $this->token());
+        $participants = $requestResult["status_code"] == 200 ? $this->deserialiser($requestResult["data"]) : [];
         return new FeuilleDeMatch($participants);
     }
 
@@ -76,18 +105,13 @@ class ParticipationControleur
         TitulaireOuRemplacant $titulaireOuRemplacant
     ): bool {
         $data = array(
-            "joueurId" => $joueurId,
-            "rencontreId" => $rencontreId,
+            "joueur" => ["joueurId" => $joueurId],
+            "rencontre" => ["rencontreId" => $rencontreId],
             "poste" => $poste->name,
             "titulaireOuRemplacant" => $titulaireOuRemplacant->name,
         );
 
-        var_dump($data);
-
-        $token = $_COOKIE["token"];
-        $requestResult = postRequest(BACKEND_BASE_URL . "participation", $data, $token);
-
-        var_dump($requestResult);
+        $requestResult = postRequest(BACKEND_BASE_URL . "participations", $data, $this->token());
 
         return $requestResult["status_code"] == 201;
     }
@@ -103,14 +127,15 @@ class ParticipationControleur
             "poste" => $poste->name,
             "titulaireOuRemplacant" => $titulaireOuRemplacant->name,
         ];
-        $requestResult = patchRequest(BACKEND_BASE_URL . "participations/$participationId", $data, $_COOKIE["token"]);
+        $requestResult = patchRequest(BACKEND_BASE_URL . "participations/$participationId", $data, $this->token());
         return $requestResult["status_code"] == 200;
     }
 
     public function supprimerLaParticipation(int $participationId): bool
     {
-        $requestResult = deleteRequest(BACKEND_BASE_URL . "participation/$participationId", $_COOKIE["token"]);
-        return $requestResult["status_code"] == 200;
+        // L'API répond 204 No Content
+        $requestResult = deleteRequest(BACKEND_BASE_URL . "participations/$participationId", $this->token());
+        return $requestResult["status_code"] == 204;
     }
 
     public function mettreAJourLaPerformance(int $participationId, string $performance): bool
@@ -120,17 +145,17 @@ class ParticipationControleur
             : Performance::fromName($performance);
 
         if ($enum === null) {
-            return false; // invalid value, don't send it
+            return false; // valeur invalide, on ne l'envoie pas
         }
 
         $data = ["performance" => $enum->value];
-        $requestResult = patchRequest(BACKEND_BASE_URL . "participations/$participationId", $data, $_COOKIE["token"]);
+        $requestResult = patchRequest(BACKEND_BASE_URL . "participations/$participationId", $data, $this->token());
         return $requestResult["status_code"] == 200;
     }
 
     public function supprimerLaPerformance(int $participationId): bool
     {
-        $requestResult = deleteRequest(BACKEND_BASE_URL . "participations/$participationId/performance", $_COOKIE["token"]);
+        $requestResult = deleteRequest(BACKEND_BASE_URL . "participations/$participationId/performance", $this->token());
         return $requestResult["status_code"] == 200;
     }
 }

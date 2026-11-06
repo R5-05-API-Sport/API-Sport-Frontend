@@ -6,22 +6,25 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/functions.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/constants.php';
 
 use DateTime;
+use Exception;
 use r401_frontend\Modele\Rencontre\Rencontre;
-use r401_frontend\Modele\Rencontre\RencontreDAO;
 use r401_frontend\Modele\Rencontre\RencontreLieu;
-use r401_frontend\Modele\Rencontre\RencontreResultat;
-use r401_frontend\rencontre\Lieu;
-use rencontre\Resultat;
-use rencontre\SensDuResultat;
 
-class RencontreControleur {
+class RencontreControleur
+{
     private static ?RencontreControleur $instance = null;
 
-    public static function getInstance(): RencontreControleur {
+    public static function getInstance(): RencontreControleur
+    {
         if (self::$instance == null) {
             self::$instance = new RencontreControleur();
         }
         return self::$instance;
+    }
+
+    private function token(): ?string
+    {
+        return $_COOKIE["token"] ?? null;
     }
 
     public function ajouterRencontre(
@@ -29,52 +32,56 @@ class RencontreControleur {
         string $equipeAdverse,
         string $adresse,
         RencontreLieu $lieu
-    ) : bool {
+    ): bool {
 
-        if ($dateHeure < date("Y-m-d H:i:s")) {
+        if ($dateHeure < new DateTime()) {
             return false;
-        } else {
-            $data = array(
-                "dateEtHeure" => $dateHeure->format("Y-m-d H:i:s"),
-                "equipeAdverse" => $equipeAdverse,
-                "adresse" => $adresse,
-                "lieu" => $lieu->name,
-            );
-
-            $requestResult = postRequest(BACKEND_BASE_URL."rencontres", $data, $_COOKIE["token"]);
-
-            return $requestResult["status_code"] == 201;
         }
+
+        $data = array(
+            "dateHeure" => $dateHeure->format("Y-m-d\TH:i:s"),
+            "equipeAdverse" => $equipeAdverse,
+            "adresse" => $adresse,
+            "lieu" => $lieu->name,
+        );
+
+        $requestResult = postRequest(BACKEND_BASE_URL . "rencontres", $data, $this->token());
+
+        return $requestResult["status_code"] == 201;
     }
 
     public function enregistrerResultat(
         int $rencontreId,
         string $resultat
-    ) : bool {
+    ): bool {
 
         $data = array("resultat" => $resultat);
 
-        $requestResult = patchRequest(BACKEND_BASE_URL."rencontres/$rencontreId", $data, $_COOKIE["token"]);
+        $requestResult = patchRequest(BACKEND_BASE_URL . "rencontres/$rencontreId", $data, $this->token());
 
         return $requestResult["status_code"] == 200;
     }
 
-    public function getRencontreById(int $rencontreId) : Rencontre {
-        $requestResult = getRequest(BACKEND_BASE_URL."rencontres/$rencontreId", $_COOKIE["token"]);
+    public function getRencontreById(int $rencontreId): Rencontre
+    {
+        $requestResult = getRequest(BACKEND_BASE_URL . "rencontres/$rencontreId", $this->token());
 
-        $data = $requestResult["data"];
-        return Rencontre::JsonDeserialize($data);
+        if ($requestResult["status_code"] != 200 || !is_array($requestResult["data"])) {
+            throw new Exception("Rencontre introuvable : $rencontreId");
+        }
+
+        return Rencontre::JsonDeserialize($requestResult["data"]);
     }
 
-    public function listerToutesLesRencontres() : array {
-        $requestResult = getRequest(BACKEND_BASE_URL."rencontres", $_COOKIE["token"]);
+    public function listerToutesLesRencontres(): array
+    {
+        $requestResult = getRequest(BACKEND_BASE_URL . "rencontres", $this->token());
 
         $rencontres = array();
 
-        if ($requestResult["status_code"] == 200) {
-            $data = $requestResult["data"];
-            foreach ($data as $rencontreJson) {
-                array_push($rencontres, Rencontre::JsonDeserialize($rencontreJson));
+        if ($requestResult["status_code"] == 200 && is_array($requestResult["data"])) {
+            foreach ($requestResult["data"] as $rencontreJson) {
+                $rencontres[] = Rencontre::JsonDeserialize($rencontreJson);
             }
         }
 
@@ -87,30 +94,37 @@ class RencontreControleur {
         string $equipeAdverse,
         string $adresse,
         RencontreLieu $lieu
-    ) : bool {
+    ): bool {
 
-        if ($dateHeure <  new DateTime()) {
+        if ($dateHeure < new DateTime()) {
             return false;
-        } else {
-            $data = array(
-                "dateEtHeure" => $dateHeure->format("Y-m-d"),
-                "equipeAdverse" => $equipeAdverse,
-                "adresse" => $adresse,
-                "lieu" => $lieu->name,
-            );
-            $requestResult = putRequest(BACKEND_BASE_URL."rencontres/".$rencontreId, $data, $_COOKIE["token"]);
-            return $requestResult["status_code"] == 200;
         }
+
+        $data = array(
+            "dateHeure" => $dateHeure->format("Y-m-d\TH:i:s"),
+            "equipeAdverse" => $equipeAdverse,
+            "adresse" => $adresse,
+            "lieu" => $lieu->name,
+        );
+
+        $requestResult = putRequest(BACKEND_BASE_URL . "rencontres/" . $rencontreId, $data, $this->token());
+        return $requestResult["status_code"] == 200;
     }
 
-    public function supprimerRencontre(int $rencontreId) : bool {
-        $rencontreASupprimer = $this->getRencontreById($rencontreId);
-
-        if($rencontreASupprimer->getResultat() != null) {
+    public function supprimerRencontre(int $rencontreId): bool
+    {
+        try {
+            $rencontreASupprimer = $this->getRencontreById($rencontreId);
+        } catch (Exception $e) {
             return false;
-        } else {
-            $result = deleteRequest(BACKEND_BASE_URL."rencontres/".$rencontreId, $_COOKIE["token"]);
-            return $result["status_code"] == 200;
         }
+
+        if ($rencontreASupprimer->getResultat() != null) {
+            return false;
+        }
+
+        // L'API répond 204 (et 409 si la rencontre a encore des participations)
+        $result = deleteRequest(BACKEND_BASE_URL . "rencontres/" . $rencontreId, $this->token());
+        return $result["status_code"] == 204;
     }
 }

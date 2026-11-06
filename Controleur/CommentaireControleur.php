@@ -5,10 +5,6 @@ namespace r401_frontend\Controleur;
 require_once $_SERVER['DOCUMENT_ROOT'] . '/functions.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/constants.php';
 
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
-
 use DateTime;
 use r401_frontend\Modele\Joueur\Commentaire\Commentaire;
 use r401_frontend\Modele\Joueur\Joueur;
@@ -23,6 +19,10 @@ class CommentaireControleur {
         return self::$instance;
     }
 
+    private function token(): ?string {
+        return $_COOKIE["token"] ?? null;
+    }
+
     public function ajouterCommentaire(
         string $contenu,
         string $joueurId
@@ -30,33 +30,35 @@ class CommentaireControleur {
 
         $data = array(
             "contenu" => $contenu,
-            "joueurId" => $joueurId
+            "joueurId" => (int) $joueurId
         );
 
-        $result = postRequest(BACKEND_BASE_URL."commentaires", $data, $_COOKIE["token"]);
+        $result = postRequest(BACKEND_BASE_URL."commentaires", $data, $this->token());
 
-        return $result["status_code"] == 200;
+        return $result["status_code"] == 201;
     }
 
     public function listerLesCommentairesDuJoueur(Joueur $joueur) : array {
-        $result = getRequest(BACKEND_BASE_URL."commentaires/joueur/".$joueur->getJoueurId(), $_COOKIE["token"]);
-        $data = $result["data"];
+        $result = getRequest(BACKEND_BASE_URL."commentaires/joueur/".$joueur->getJoueurId(), $this->token());
 
         $commentaires = array();
 
-        foreach ($data as $commentaireJson) {
+        if ($result["status_code"] != 200 || !is_array($result["data"])) {
+            return $commentaires;
+        }
+
+        foreach ($result["data"] as $commentaireJson) {
             $commentaireId = $commentaireJson["commentaireId"];
-            $contenu = $commentaireJson["contenu"];
-            $date = new DateTime($commentaireJson["date"]);
-            $newCommentaire = new Commentaire($commentaireId, $contenu, $date);
-            array_push($commentaires, $newCommentaire);
+            $contenu = $commentaireJson["contenu"] ?? "";
+            $date = new DateTime($commentaireJson["date"] ?? "now");
+            $commentaires[] = new Commentaire($commentaireId, $contenu, $date);
         }
 
         return $commentaires;
     }
 
     public function supprimerCommentaire(string $commentaireId) : bool {
-        $result = deleteRequest(BACKEND_BASE_URL."commentaires/".$commentaireId, $_COOKIE["token"]);
-        return $result["status_code"] == 200;
+        $result = deleteRequest(BACKEND_BASE_URL."commentaires/".$commentaireId, $this->token());
+        return $result["status_code"] == 204;
     }
 }

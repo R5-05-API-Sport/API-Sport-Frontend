@@ -46,25 +46,30 @@ class JoueurControleur {
             "statut" => $statut,
         );
 
-        $token = $_COOKIE["token"];
+        $token = $_COOKIE["token"] ?? null;
         $result = postRequest(BACKEND_BASE_URL."joueurs", $data, $token);
 
         return $result["status_code"] == 201;
     }
 
     public function getJoueurById(int $joueurId) : Joueur {
-        $result = getRequest(BACKEND_BASE_URL."joueurs/".$joueurId, $_COOKIE["token"]);
-        $joueurJson = $result["data"];
-        return Joueur::JsonDeserialize($joueurJson);
+        $result = getRequest(BACKEND_BASE_URL."joueurs/".$joueurId, $_COOKIE["token"] ?? null);
+        if ($result["status_code"] != 200 || !is_array($result["data"])) {
+            throw new Exception("Joueur introuvable : $joueurId");
+        }
+        return Joueur::JsonDeserialize($result["data"]);
     }
 
     public function listerLesJoueursSelectionnablesPourUnMatch(int $rencontreId) : array {
         $toutLesJoueurs = $this->listerTousLesJoueurs();
         $joueursSelectionnables = [];
 
+        // Une seule requête pour la feuille de match, au lieu d'une par joueur
+        $idsDejaSurLaFeuille = $this->participationControleur->getIdsDesJoueursSurLaFeuilleDeMatch($rencontreId);
+
         foreach ($toutLesJoueurs as $joueur) {
             if ($joueur->getStatut() == JoueurStatut::ACTIF &&
-            !$this->participationControleur->lejoueurEstDejaSurLaFeuilleDeMatch($rencontreId, $joueur->getJoueurId())) {
+            !in_array($joueur->getJoueurId(), $idsDejaSurLaFeuille)) {
                 $joueursSelectionnables[] = $joueur;
             }
         }
@@ -73,7 +78,7 @@ class JoueurControleur {
     }
 
     public function listerTousLesJoueurs(): array {
-    $requestResult = getRequest(BACKEND_BASE_URL . "joueurs", $_COOKIE["token"]);
+    $requestResult = getRequest(BACKEND_BASE_URL . "joueurs", $_COOKIE["token"] ?? null);
 
     $joueurs = [];
 
@@ -107,7 +112,7 @@ class JoueurControleur {
             "statut" => $statut,
         );
 
-        $result = putRequest(BACKEND_BASE_URL."joueurs/".$joueurId, $data, $_COOKIE["token"]);
+        $result = putRequest(BACKEND_BASE_URL."joueurs/".$joueurId, $data, $_COOKIE["token"] ?? null);
 
         return $result["status_code"] == 200;
     }
@@ -136,7 +141,7 @@ class JoueurControleur {
     }
 
     public function supprimerJoueur(int $joueurId) : bool {
-        $result = deleteRequest(BACKEND_BASE_URL."joueurs/".$joueurId, $_COOKIE["token"]);
+        $result = deleteRequest(BACKEND_BASE_URL."joueurs/".$joueurId, $_COOKIE["token"] ?? null);
         return $result["status_code"] == 200;
     }
 }

@@ -10,12 +10,13 @@ use r401_frontend\Modele\Rencontre\RencontreLieu;
 use r401_frontend\Vue\Component\Formulaire;
 
 $controleur = RencontreControleur::getInstance();
-if ($_SERVER['REQUEST_METHOD'] === 'POST'
-        && isset($_GET['id'])
-        && isset($_POST['dateHeure'])
-        && isset($_POST['equipeAdverse'])
-        && isset($_POST['adresse'])
-        && isset($_POST['lieu'])
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST'
+    && isset($_GET['id'])
+    && isset($_POST['dateHeure'])
+    && isset($_POST['equipeAdverse'])
+    && isset($_POST['adresse'])
+    && isset($_POST['lieu'])
 ) {
     if (
         $controleur->modifierRencontre(
@@ -27,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'
         )
     ) {
         header('Location: /rencontre');
-    }else{
+    } else {
         error_log("Erreur lors de la modification de la rencontre");
     }
 } else {
@@ -37,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'
         $rencontre = $controleur->getRencontreById($_GET['id']);
 
         $formulaire = new Formulaire("/rencontre/modifier?id=" . $rencontre->getRencontreId());
-        $formulaire->setDateTime("Date", "dateHeure", date("Y-m-d H:i"), $rencontre->getDateEtHeure()->format("Y-m-d H:i"));
+        $formulaire->setDateTime("Date", "dateHeure", date("Y-m-d H:i"), $rencontre->getDateHeure()->format("Y-m-d H:i"));
         $formulaire->setText("Equipe adverse", "equipeAdverse", "", $rencontre->getEquipeAdverse());
         $formulaire->setText("Adresse", "adresse", "", $rencontre->getAdresse());
         $formulaire->setSelect("Lieu", array_map(function (RencontreLieu $lieu) {
